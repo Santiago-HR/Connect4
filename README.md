@@ -1,193 +1,185 @@
-# Connect Four (C Programming Project)
+# Connect Four (C) — Terminal Game
 
-**University of Central Florida**  
-**COP 3223 – Intro to Programming in C**  
-**Assignment 7**
+This repository contains a command-line implementation of the classic **Connect Four** game written in **C**.  
+Two players (Yellow and Red) take turns dropping discs into a **6×7** grid until one player connects **four** in a row **horizontally, vertically, or diagonally**.
 
-This project implements a fully functional **Connect Four** game in the C programming language.  
-The program recreates the classic two-player board game using arrays, structures, user-defined functions, and header files.
+The project is split into two files:
 
----
-
-## 📅 Due Dates & Grading
-
-- **Sunday, December 3, 2023** — max **100**
-- **Monday, December 4, 2023** — max **90**
-- **Tuesday, December 5, 2023** — max **80**
-- **Wednesday, December 6, 2023** — max **70**
+- `connect4.c` — main program and all game logic
+- `connect4.h` — constants, `Player` struct, and function prototypes
 
 ---
 
-## 📦 Deliverables
-
-The following files must be submitted:
+## 📁 File Layout
 
 ```text
-connectfour.c
-connectfour.h
-🎮 Project Description
-The goal of this assignment is to generate a Connect Four game board and replicate the full gameplay experience, including:
+.
+├── connect4.c   # Game logic + main program
+└── connect4.h   # Macros, struct definitions, function prototypes
+🎮 How the Game Works
+1) Startup & Rules
+When the program starts, it calls:
 
-Game setup
+welcomeScreen()
+Prints an ASCII Connect Four title and displays the rules.
 
-Player turns
+Then it calls:
 
-Valid and invalid moves
+playGame()
+Runs the full game loop until the game ends.
 
-Win detection
+🧩 Board Representation
+The board is stored as a 2D character array:
+
+c
+Copy code
+char board[ROW][COL];
+Where:
+
+ROW = 6
+
+COL = 7
+
+Empty spaces are stored as ' ' (SPACE)
+
+The board is initialized by:
+
+initializeBoard(board)
+Fills the entire board with SPACE.
+
+The board is displayed after important events by:
+
+displayBoard(board)
+Prints the board with column labels A through G.
+
+👤 Player Representation
+Players are stored using a struct Player:
+
+c
+Copy code
+struct Player {
+    int playerNum;
+    char playerName[NAME];
+    int numDisc;
+    char playChar;
+};
+Yellow always starts (YELLOW = 1, playChar = 'Y')
+
+Red is player 2 (RED = 2, playChar = 'R')
+
+Each player starts with DISC = 21 discs
+
+🔁 Turn Logic (Main Game Loop)
+playGame() controls turns:
+
+Prompts Yellow and Red for their names
+
+Displays the empty board
+
+Repeats turns until the game is over:
+
+During each turn:
+
+makeMove(&player, board)
+Prompts the current player to choose a column.
+
+After a move:
+
+displayStats(yellow) and displayStats(red) show each player’s stats
+
+displayBoard(board) prints the updated board
+
+✅ Input Validation & Moves
+Valid Input
+Players choose a column using one letter:
+
+Valid columns: A B C D E F G (case-insensitive)
+
+Move handling is done by:
+
+getMoveCol(move)
+Converts the entered letter into a column index (0–6) or returns INVALID.
+
+isColFull(move, board)
+Prevents placing a disc into a full column.
+
+updateBoard(move, board, player)
+Drops the disc into the lowest available row in that column and decreases the player's disc count.
+
+If the move is invalid, the user is re-prompted until a valid move is entered.
+
+🏁 Win Detection & Game Over
+Game Over Conditions
+The game ends when:
+
+A player runs out of discs, or
+
+A win is detected by checkWin(board)
+
+Win Checking
+Win checking is handled by:
+
+checkWin(board)
+Returns TRUE if any of the following return TRUE:
+
+checkHorizontal(board)
+
+checkVertical(board)
+
+checkDiagonal(board)
+
+Diagonal detection checks both directions:
+
+top-left → bottom-right
+
+bottom-left → top-right
+
+Game Over Output
+When the game ends:
+
+displayGameOver() prints a “GAME OVER” banner
+
+Final player stats are printed
+
+🛠 Build & Run
+Compile:
+
+bash
+Copy code
+gcc connect4.c -o connect4
+Run:
+
+bash
+Copy code
+./connect4
+📌 Notes
+The game runs in the terminal and uses standard input (scanf) for player moves.
+
+The header file (connect4.h) defines all macros, the Player struct, and the function prototypes so connect4.c stays clean and organized.
+
+Input expects names without spaces (since %s is used).
+
+📄 What’s in Each File?
+connect4.c
+Contains:
+
+main()
+
+Board setup and rendering
+
+Player turn system
+
+Input handling + validation
+
+Win checking (horizontal/vertical/diagonal)
 
 Game over display
 
-The project emphasizes fundamental C programming concepts such as:
+connect4.h
+Contains:
 
-Primitive data types
+Macro constants (board size, players, TRUE/FALSE, etc.)
 
-Arrays
+struct Player definition
 
-Structures
-
-User-defined functions
-
-Header files
-
-Standard C libraries
-
-🧩 Game Components
-Two players: Yellow and Red
-
-Board size: 6 rows × 7 columns
-
-Players drop discs into columns
-
-Discs stack vertically from the bottom
-
-🏆 Object of the Game
-Players alternate turns placing discs in the grid.
-The first player to connect four discs of the same color:
-
-Horizontally
-
-Vertically
-
-Diagonally
-
-wins the game.
-
-▶️ Game Play Rules
-Yellow always goes first
-
-Players take turns selecting a column
-
-Valid columns: {A, B, C, D, E, F, G} (case-insensitive)
-
-Invalid input is rejected and re-prompted
-
-Columns cannot exceed capacity
-
-Player statistics are displayed after each move
-
-🛑 End of Game
-The game ends when:
-
-A player achieves four in a row (horizontal, vertical, or diagonal)
-
-A Game Over message is displayed along with final player statistics.
-
-📂 Assignment File Structure
-text
-Copy code
-.
-├── connectfour.c   # Main game logic
-└── connectfour.h   # Header file with macros, structs, and prototypes
-🧠 Assignment Scope
-This project required students to:
-
-Copy and extend existing C source code
-
-Create and use a header file
-
-Move macros, structs, and prototypes to the header
-
-Add new functions
-
-Use structures
-
-Compile and run a multi-file C program
-
-Submit correctly named files to Webcourses
-
-🛠 Required Functions
-The following functions were implemented or updated:
-
-Win Checking Functions
-c
-Copy code
-int checkHorizontal(char board[ROW][COL]);
-int checkVertical(char board[ROW][COL]);
-int checkDiagonal(char board[ROW][COL]);
-Game Flow Functions
-c
-Copy code
-void displayGameOver(void);
-Updated Logic
-checkWin() calls all three check functions
-
-playGame() controls game flow and display order
-
-🧪 Test Cases
-The program was tested against 11 required test cases, including:
-
-Program startup and welcome message
-
-Player name input
-
-Invalid and valid column selection
-
-Column full detection
-
-Horizontal, vertical, and diagonal wins
-
-Proper game over messaging
-
-All test cases passed successfully.
-
-✅ Compilation & Execution
-Compile using gcc:
-
-bash
-Copy code
-gcc connectfour.c -o connectfour
-Run the program:
-
-bash
-Copy code
-./connectfour
-📚 References
-Example source code provided in Webcourses:
-
-dataTypes.c
-
-variables.c
-
-constants.c
-
-operators.c
-
-decisionMaking.c
-
-looping.c
-
-arrays.c
-
-structures.c
-
-header.h
-
-📌 Notes
-Source code compiles with no warnings or errors
-
-Program runs correctly for all required scenarios
-
-Code includes meaningful comments
-
-File naming conventions were followed to avoid submission issues
+Function prototypes used by connect4.c
