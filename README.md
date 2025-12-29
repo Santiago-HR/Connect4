@@ -146,7 +146,6 @@ gcc connect4.c -o connect4
 Run:
 
 bash
-Copy code
 ./connect4
 
 📌 Notes
