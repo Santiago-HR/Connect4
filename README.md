@@ -18,26 +18,27 @@
 
 ## The Game
 
-A complete, fully playable Connect Four game running in the terminal. Two players compete head-to-head on a 6×7 grid — dropping colored discs into columns, stacking upward, and racing to connect four before the other player does.
+A complete, fully playable Connect Four game running in the terminal. Two players compete head-to-head on a 6×7 grid — dropping colored discs into columns, stacking upward by gravity, and racing to connect four before the other player does.
 
 ```
-|-------------------------------------|
-|  A  |  B  |  C  |  D  |  E  |  F  |  G  |
-|-------------------------------------|
-|     |     |     |     |     |     |     |
-|-------------------------------------|
-|     |     |     |     |     |     |     |
-|-------------------------------------|
-|     |     |  Y  |     |     |     |     |
-|-------------------------------------|
-|     |  R  |  Y  |     |     |     |     |
-|-------------------------------------|
-|     |  R  |  Y  |  R  |     |     |     |
-|-------------------------------------|
-|  Y  |  R  |  Y  |  R  |     |     |     |
-|-------------------------------------|
+|-----------------------------------------|
+| A | B | C | D | E | F | G |
+|-----------------------------------------|
+|-----------------------------------------|
+|   |   |   |   |   |   |   |
+|-----------------------------------------|
+|   |   |   |   |   |   |   |
+|-----------------------------------------|
+|   |   |   |   |   |   |   |
+|-----------------------------------------|
+|   |   |   |   |   |   |   |
+|-----------------------------------------|
+| Y | R |   |   |   |   |   |
+|-----------------------------------------|
+| Y | R |   |   |   |   |   |
+|-----------------------------------------|
 
-Karin, enter the column to place disc (e.g. B):
+Alice, enter the column to place disc (e.g. B):
 ```
 
 ---
@@ -46,9 +47,10 @@ Karin, enter the column to place disc (e.g. B):
 
 - 🎮 &nbsp;**Two-player local gameplay** — Yellow vs. Red, names entered at start
 - 🪂 &nbsp;**Gravity physics** — discs fall to the lowest open row automatically
-- 🚫 &nbsp;**Input validation** — only A–G accepted, re-prompts on bad input
+- 🚫 &nbsp;**Input validation** — only A–G accepted, re-prompts on bad or multi-character input
 - 📦 &nbsp;**Full-column detection** — blocks illegal moves with a clear message
 - 🏆 &nbsp;**Win detection** — checks horizontal, vertical, and both diagonals after every move
+- 🎉 &nbsp;**Winner announcement** — displays the winning player's name at game over
 - 📊 &nbsp;**Live stats** — player disc count and character displayed after each turn
 - 🎨 &nbsp;**ASCII art welcome screen** with game rules on launch
 
@@ -57,8 +59,8 @@ Karin, enter the column to place disc (e.g. B):
 ## Build & Run
 
 ```bash
-gcc -o connectfour connectfour.c
-./connectfour
+gcc -o connect4 connect4.c
+./connect4
 ```
 
 **Requirements:** GCC · Any Unix terminal or Windows with MinGW
@@ -67,47 +69,65 @@ gcc -o connectfour connectfour.c
 
 ## How It Works
 
-Each turn runs through a clean pipeline:
+Each turn runs through a clean validation pipeline before anything touches the board:
 
 ```
 Player input
     │
     ▼
-makeMove() ──► validate length == 1
-    │          validate char in {A-G}
-    │          isColFull() == false
+makeMove() ──► length == 1?          no  ──► "Invalid move, try again"
+    │          char in {A–G}?        no  ──► "Invalid move, try again"
+    │          isColFull() == FALSE?  no  ──► "Column is full! Invalid move..."
     │
-    ▼
+    ▼ yes to all
 updateBoard() ──► scan column bottom-up for first empty row
-    │             place Y or R
+    │             place Y or R at that row
     │             decrement player's disc count
     ▼
-gameOver() ──► numDiscs == 0?  ──► TRUE
-    │          checkWin()?     ──► TRUE
-    │          otherwise       ──► FALSE
+gameOver() ──► checkWin()?       ──► TRUE  (win takes priority)
+    │          numDiscs == 0?    ──► TRUE  (draw — all discs placed)
+    │          otherwise         ──► FALSE
     ▼
 switch players → repeat
 ```
-
-Invalid input loops back to the prompt silently — no crashes, no undefined behavior.
 
 ---
 
 ## Code Structure
 
 ```
-connectfour.c
+connect4.h                  Macros, Player struct, all function prototypes
+connect4.c
 │
-├── welcome()          ASCII art header + rules display
-├── setupPlayers()     Name prompts, assign Y/R, init disc counts
-├── playGame()         Main game loop — runs until gameOver() == TRUE
-├── makeMove()         Input capture + 3-condition validation gate
-├── isColFull()        Scans top row of column for vacancy
-├── updateBoard()      Bottom-up column scan, places disc, updates struct
-├── gameOver()         Evaluates disc count and win conditions
-├── checkWin()         Four-in-a-row scan across all directions
-└── printStats()       Formatted player statistics after each turn
+├── main()                  Entry point — calls welcomeScreen then playGame
+├── welcomeScreen()         ASCII logo + rules display
+├── playGame()              Player setup + main game loop
+├── initializeBoard()       Fills board[6][7] with spaces
+├── displayBoard()          Renders the current board state to terminal
+├── makeMove()              Input loop with 3-stage validation
+├── getMoveCol()            Maps letter A–G (case-insensitive) → column index
+├── isColFull()             Counts filled rows in a column; returns TRUE if full
+├── updateBoard()           Bottom-up column scan; places disc, decrements count
+├── gameOver()              Checks win condition then disc exhaustion
+├── checkWin()              Delegates to horizontal, vertical, diagonal checks
+├── checkHorizontal()       Scans rows for 4 consecutive matching discs
+├── checkVertical()         Scans columns for 4 consecutive matching discs
+├── checkDiagonal()         Scans both diagonals for 4 consecutive matching discs
+├── displayStats()          Prints player number, character, and disc count
+└── displayGameOver()       Announces winner by name, or declares a draw
 ```
+
+---
+
+## Bugs Fixed
+
+| # | Issue | Fix |
+|---|-------|-----|
+| 1 | `char move[2]` buffer overflow — multi-char input wrote past the array | Changed to `char move[INPUT_BUF]` (10 bytes); `scanf` limited with `%9s` |
+| 2 | `scanf("%s", playerName)` with no width limit — names > 19 chars overflowed | Changed to `scanf("%19s", ...)` |
+| 3 | When column was full, both `"Column is full!"` and `"Invalid move"` printed on the same path | Restructured `makeMove` with separate `if/else if/else` branches — one message per case |
+| 4 | `gameOver` checked disc count before win — last disc placed as a winning move could be misidentified as a draw | Reordered: `checkWin` is evaluated first |
+| 5 | `displayGameOver` printed a generic banner with no winner info | Now scans the board to identify the winning character, then prints the player's name |
 
 ---
 
@@ -116,8 +136,9 @@ connectfour.c
 ![C](https://img.shields.io/badge/C-00599C?style=flat-square&logo=c&logoColor=white)
 ![2D Arrays](https://img.shields.io/badge/2D_Arrays-informational?style=flat-square)
 ![Structs](https://img.shields.io/badge/Structs-informational?style=flat-square)
-![Game Loop](https://img.shields.io/badge/Game_Loop-Design-blueviolet?style=flat-square)
+![Game Loop](https://img.shields.io/badge/Game_Loop_Design-blueviolet?style=flat-square)
 ![Input Validation](https://img.shields.io/badge/Input_Validation-passing-success?style=flat-square)
+![Win Detection](https://img.shields.io/badge/Win_Detection-All_Directions-orange?style=flat-square)
 
 *UCF COP 3223 Intro to Programming in C — Fall 2023*
 
