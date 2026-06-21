@@ -1,185 +1,124 @@
-# Connect Four (C) — Terminal Game
+<div align="center">
 
-This repository contains a command-line implementation of the classic **Connect Four** game written in **C**.  
-Two players (Yellow and Red) take turns dropping discs into a **6×7** grid until one player connects **four** in a row **horizontally, vertically, or diagonally**.
+# 🔴 Connect Four 🟡
+### Terminal-based · Two Player · Written in C
 
-The project is split into two files:
+<img src="https://img.shields.io/badge/C-00599C?style=for-the-badge&logo=c&logoColor=white"/>
+<img src="https://img.shields.io/badge/Terminal-Game-black?style=for-the-badge&logo=gnometerminal&logoColor=white"/>
+<img src="https://img.shields.io/badge/UCF-COP3223-BA9B37?style=for-the-badge&logo=academia&logoColor=white"/>
+<img src="https://img.shields.io/badge/2_Player-Local-critical?style=for-the-badge&logo=twitch&logoColor=white"/>
 
-- `connect4.c` — main program and all game logic
-- `connect4.h` — constants, `Player` struct, and function prototypes
+<br/>
+
+> *Drop your disc. Block your opponent. Get four in a row.*
+
+</div>
 
 ---
 
-## 📁 File Layout
+## The Game
 
-```text
-.
-├── connect4.c   # Game logic + main program
-└── connect4.h   # Macros, struct definitions, function prototypes
-🎮 How the Game Works
-1) Startup & Rules
-When the program starts, it calls:
+A complete, fully playable Connect Four game running in the terminal. Two players compete head-to-head on a 6×7 grid — dropping colored discs into columns, stacking upward, and racing to connect four before the other player does.
 
-welcomeScreen()
-Prints an ASCII Connect Four title and displays the rules.
+```
+|-------------------------------------|
+|  A  |  B  |  C  |  D  |  E  |  F  |  G  |
+|-------------------------------------|
+|     |     |     |     |     |     |     |
+|-------------------------------------|
+|     |     |     |     |     |     |     |
+|-------------------------------------|
+|     |     |  Y  |     |     |     |     |
+|-------------------------------------|
+|     |  R  |  Y  |     |     |     |     |
+|-------------------------------------|
+|     |  R  |  Y  |  R  |     |     |     |
+|-------------------------------------|
+|  Y  |  R  |  Y  |  R  |     |     |     |
+|-------------------------------------|
 
-Then it calls:
+Karin, enter the column to place disc (e.g. B):
+```
 
-playGame()
-Runs the full game loop until the game ends.
+---
 
-🧩 Board Representation
-The board is stored as a 2D character array:
+## Features
 
-c
-Copy code
-char board[ROW][COL];
-Where:
+- 🎮 &nbsp;**Two-player local gameplay** — Yellow vs. Red, names entered at start
+- 🪂 &nbsp;**Gravity physics** — discs fall to the lowest open row automatically
+- 🚫 &nbsp;**Input validation** — only A–G accepted, re-prompts on bad input
+- 📦 &nbsp;**Full-column detection** — blocks illegal moves with a clear message
+- 🏆 &nbsp;**Win detection** — checks horizontal, vertical, and both diagonals after every move
+- 📊 &nbsp;**Live stats** — player disc count and character displayed after each turn
+- 🎨 &nbsp;**ASCII art welcome screen** with game rules on launch
 
-ROW = 6
+---
 
-COL = 7
+## Build & Run
 
-Empty spaces are stored as ' ' (SPACE)
+```bash
+gcc -o connectfour connectfour.c
+./connectfour
+```
 
-The board is initialized by:
+**Requirements:** GCC · Any Unix terminal or Windows with MinGW
 
-initializeBoard(board)
-Fills the entire board with SPACE.
+---
 
-The board is displayed after important events by:
+## How It Works
 
-displayBoard(board)
-Prints the board with column labels A through G.
+Each turn runs through a clean pipeline:
 
-👤 Player Representation
-Players are stored using a struct Player:
+```
+Player input
+    │
+    ▼
+makeMove() ──► validate length == 1
+    │          validate char in {A-G}
+    │          isColFull() == false
+    │
+    ▼
+updateBoard() ──► scan column bottom-up for first empty row
+    │             place Y or R
+    │             decrement player's disc count
+    ▼
+gameOver() ──► numDiscs == 0?  ──► TRUE
+    │          checkWin()?     ──► TRUE
+    │          otherwise       ──► FALSE
+    ▼
+switch players → repeat
+```
 
-c
-Copy code
-struct Player {
-    int playerNum;
-    char playerName[NAME];
-    int numDisc;
-    char playChar;
-};
-Yellow always starts (YELLOW = 1, playChar = 'Y')
+Invalid input loops back to the prompt silently — no crashes, no undefined behavior.
 
-Red is player 2 (RED = 2, playChar = 'R')
+---
 
-Each player starts with DISC = 21 discs
+## Code Structure
 
-🔁 Turn Logic (Main Game Loop)
-playGame() controls turns:
+```
+connectfour.c
+│
+├── welcome()          ASCII art header + rules display
+├── setupPlayers()     Name prompts, assign Y/R, init disc counts
+├── playGame()         Main game loop — runs until gameOver() == TRUE
+├── makeMove()         Input capture + 3-condition validation gate
+├── isColFull()        Scans top row of column for vacancy
+├── updateBoard()      Bottom-up column scan, places disc, updates struct
+├── gameOver()         Evaluates disc count and win conditions
+├── checkWin()         Four-in-a-row scan across all directions
+└── printStats()       Formatted player statistics after each turn
+```
 
-Prompts Yellow and Red for their names
+---
 
-Displays the empty board
+<div align="center">
 
-Repeats turns until the game is over:
+![C](https://img.shields.io/badge/C-00599C?style=flat-square&logo=c&logoColor=white)
+![2D Arrays](https://img.shields.io/badge/2D_Arrays-informational?style=flat-square)
+![Structs](https://img.shields.io/badge/Structs-informational?style=flat-square)
+![Game Loop](https://img.shields.io/badge/Game_Loop-Design-blueviolet?style=flat-square)
+![Input Validation](https://img.shields.io/badge/Input_Validation-passing-success?style=flat-square)
 
-During each turn:
+*UCF COP 3223 Intro to Programming in C — Fall 2023*
 
-makeMove(&player, board)
-Prompts the current player to choose a column.
-
-After a move:
-
-displayStats(yellow) and displayStats(red) show each player’s stats
-
-displayBoard(board) prints the updated board
-
-✅ Input Validation & Moves
-Valid Input
-Players choose a column using one letter:
-
-Valid columns: A B C D E F G (case-insensitive)
-
-Move handling is done by:
-
-getMoveCol(move)
-Converts the entered letter into a column index (0–6) or returns INVALID.
-
-isColFull(move, board)
-Prevents placing a disc into a full column.
-
-updateBoard(move, board, player)
-Drops the disc into the lowest available row in that column and decreases the player's disc count.
-
-If the move is invalid, the user is re-prompted until a valid move is entered.
-
-🏁 Win Detection & Game Over
-Game Over Conditions
-The game ends when:
-
-A player runs out of discs, or
-
-A win is detected by checkWin(board)
-
-Win Checking
-Win checking is handled by:
-
-checkWin(board)
-Returns TRUE if any of the following return TRUE:
-
-checkHorizontal(board)
-
-checkVertical(board)
-
-checkDiagonal(board)
-
-Diagonal detection checks both directions:
-
-top-left → bottom-right
-
-bottom-left → top-right
-
-Game Over Output
-When the game ends:
-
-displayGameOver() prints a “GAME OVER” banner
-
-Final player stats are printed
-
-🛠 Build & Run
-Compile:
-
-bash
-Copy code
-gcc connect4.c -o connect4
-Run:
-
-bash
-Copy code
-./connect4
-📌 Notes
-The game runs in the terminal and uses standard input (scanf) for player moves.
-
-The header file (connect4.h) defines all macros, the Player struct, and the function prototypes so connect4.c stays clean and organized.
-
-Input expects names without spaces (since %s is used).
-
-📄 What’s in Each File?
-connect4.c
-Contains:
-
-main()
-
-Board setup and rendering
-
-Player turn system
-
-Input handling + validation
-
-Win checking (horizontal/vertical/diagonal)
-
-Game over display
-
-connect4.h
-Contains:
-
-Macro constants (board size, players, TRUE/FALSE, etc.)
-
-struct Player definition
-
-Function prototypes used by connect4.c
+</div>
